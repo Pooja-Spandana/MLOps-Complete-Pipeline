@@ -1,4 +1,5 @@
 import os
+import yaml
 import logging
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -24,6 +25,24 @@ file_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+
+
+# Function to load parameters from yaml file
+def load_params(params_path: str) -> dict:
+    '''Load parameters from a YAML file'''
+    try:
+        with open(params_path, 'r') as file:
+            params = yaml.safe_load(file)
+        logger.debug('Parameters retrieved from %s', params_path)
+        return params
+    except FileNotFoundError:
+        logger.error('File not found: %s', params_path)
+    except yaml.YAMLError as e:
+        logger.error('YAML error: %s', e)
+        raise
+    except Exception as e:
+        logger.error('Unexpected error: %s', e)
+        raise
 
 
 # Function to load data
@@ -74,7 +93,11 @@ def save_data(train_data: pd.DataFrame, test_data: pd.DataFrame, data_path: str)
 
 def main():
     try:
-        test_size = 0.2
+        # test_size = 0.2 -> hardcoding param value
+
+        # Retrieving param values from params.yaml -> MLOps standard
+        params = load_params(params_path='params.yaml')
+        test_size = params['data_ingestion']['test_size']
         data_path = 'https://raw.githubusercontent.com/Pooja-Spandana/MLOps-Complete-Pipeline/refs/heads/main/experiments/spam.csv'
 
         df = load_data(data_url=data_path)
